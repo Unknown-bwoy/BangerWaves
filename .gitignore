@@ -1,0 +1,13 @@
+# Block the local Python virtual environment binaries
+.venv/
+venv/
+ENV/
+
+# Block compiled Python bytecode files (these are generated at runtime)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Block local application cache databases (stops git from tracking your app's temporary playlists)
+*.db
+*.sqlite3
