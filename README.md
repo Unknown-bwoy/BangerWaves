@@ -1,3 +1,3 @@
-# BangerWaves
+# BangerWave
 
 
