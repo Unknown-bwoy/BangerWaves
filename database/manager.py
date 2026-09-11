@@ -1,6 +1,6 @@
 import sqlite3
 
-class TuneInDatabase:
+class BangerWaveDatabase:
     def __init__(self, db_name: str = "tunein.db"):
         self.db_name = db_name
         self.initialize_schema()
