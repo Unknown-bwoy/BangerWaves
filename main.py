@@ -25,4 +25,5 @@ def main(page: ft.Page):
 
 # Launch the full cross-platform application interface instance
 if __name__ == "__main__":
-    ft.app(target=main)
+
+     #TODO Fix errors  and continue and test the app
