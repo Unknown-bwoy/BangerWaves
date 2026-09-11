@@ -7,7 +7,7 @@ main_ws_row = ft.Row(
         ft.Container(width=250,bgcolor=ft.Colors.SURFACE_CONTAINER_LOW),
         
         #Right Panel COmponents: Expands dynamically  
-        ft.Container(expand=True,bgcolor=ft.Colors.BLACK)
+        ft.Co(expand=True,bgcolor=ft.COLORS.BLACK)
 
 
 

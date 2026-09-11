@@ -4,8 +4,8 @@ from core.audio_worker import AudioWorker
 from database.manager import BangerWaveDatabase
 from ui.layout import BangerWaveLayout
 
-def main(page:ft.page):
-    # 1. Initialize your core system layers inside runtime memory
+def main(page: ft.Page):
+                       # 1. Initialize your core system layers inside runtime memory
     state = Appstate()
     worker = AudioWorker()
     db = BangerWaveDatabase()
