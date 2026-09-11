@@ -4,7 +4,7 @@ from core.audio_worker import AudioWorker
 from database.manager import BangerWaveDatabase
 from ui.layout import BangerWaveLayout
 
-def main(page: ft.Page):
+def main(page:ft.page):
     # 1. Initialize your core system layers inside runtime memory
     state = Appstate()
     worker = AudioWorker()
@@ -24,6 +24,6 @@ def main(page: ft.Page):
     page.on_window_event = handle_window_event
 
 # Launch the full cross-platform application interface instance
-if __name__ == "__main__":
-
-     #TODO Fix errors  and continue and test the app
+if __name__ == "__main__": 
+    ft.app(target=main)
+ 
