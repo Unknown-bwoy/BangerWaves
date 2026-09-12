@@ -1,51 +1,59 @@
 import asyncio
 import concurrent.futures
-from typing import Any, Dict, Optional, cast
-
+from typing import Dict, Any, Optional
 import yt_dlp
 
-
 class AudioWorker:
-	def __init__(self, max_workers: int = 2):
-		self.executor = concurrent.futures.ThreadPoolExecutor(
-			max_workers=max_workers
-		)
-		self.ydl_opts: Any = {
-			"format": "bestaudio/best",
-			"noplaylist": True,
-			"quiet": True,
-			"skip_download": True,
-			"extract_flat": False,
-		}
+    """
+    Thread-Isolated Network Extraction Engine for BangerWave.
+    Wraps synchronous yt_dlp scraping targets inside a persistent ThreadPoolExecutor
+    to protect the asynchronous Flet UI main loop from blocking during network I/O.
+    """
+    def __init__(self, max_workers: int = 2):
+        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
+        
+        self.ydl_opts = {
+            'format': 'bestaudio/best',      # Targets optimal direct compression audio formats
+            'noplaylist': True,               # Restricts processing to single isolated nodes
+            'quiet': True,                    # Strips standard out stdout logging overhead
+            'skip_download': True,            # Intercepts links only; stops hard drive downloads
+            'extract_flat': False,            # Deep resolves streaming tokens explicitly
+        }
 
-	def _extract(self, query: str) -> Optional[Dict[str, Any]]:
-		"""Synchronously extract audio information using yt_dlp."""
-		search_target = f"ytsearch1:{query}"
+    def _extract(self, query: str) -> Optional[Dict[str, Any]]:
+        """Synchronous core executed exclusively within the background worker thread."""
+        search_target = f"ytsearch1:{query}"
+        
+        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+            info = ydl.extract_info(search_target, download=False)
+            
+            if info:
+                # Cast the Pylance-flagged iterable safely to a Sized Python list
+                entries = list(info.get("entries") or [])
+                
+                if entries:
+                    target_entry = entries[0]  # Safely index position zero
+                    return {
+                        "id": target_entry.get('id'),
+                        "title": target_entry.get('title', 'Unknown Track'),
+                        "duration": float(target_entry.get('duration', 0.0)),
+                        "url": target_entry.get('url'),  # Raw unexpired HTTP CDN streaming link
+                        "query": query                     
+                    }
+            return None
 
-		with yt_dlp.YoutubeDL(cast(Any, self.ydl_opts)) as ydl:
-			info = ydl.extract_info(search_target, download=False)
+    async def resolve_stream(self, query: str) -> Optional[Dict[str, Any]]:
+        """Asynchronously delegates blocking yt-dlp extraction to a thread pool worker."""
+        if not query.strip():
+            return None
 
-			if info and "entries" in info:
-				target_entry = next(iter(info["entries"]), None)
-				if target_entry is None:
-					return None
-				duration = target_entry.get("duration")
-				return { 
-					"id": target_entry.get("id"),
-					"title": target_entry.get("title", "Unknown Track"),
-					"duration": float(duration) if duration is not None else 0.0,
-					"url": target_entry.get("url"),
-					"query": query,
-				}
-		return None
+        loop = asyncio.get_running_loop()
+        try:
+            return await loop.run_in_executor(self.executor, self._extract, query)
+        except Exception as e:
+            print(f"[ENGINE EXCEPTION] Link resolution failed for query '{query}': {e}")
+            return None
 
-	async def resolve_stream(self, query: str) -> Optional[Dict[str, Any]]:
-		"""Delegate blocking extraction to the background thread pool."""
-		current_loop = asyncio.get_running_loop()
-		return await current_loop.run_in_executor(
-			self.executor, self._extract, query
-		)
-
-	def shutdown(self) -> None:
-		"""Shut down the executor and free its worker threads."""
-		self.executor.shutdown(wait=True)
+    def shutdown(self) -> None:
+        """Halts the execution pipeline and terminates background workers cleanly."""
+        self.executor.shutdown(wait=True)
