@@ -1,10 +1,13 @@
-import flet as ft
+from flet.app import app
+from flet.controls.page import Page
+
 from core.state import AppState
 from core.audio_worker import AudioWorker
 from database.manager import BangerWaveDatabase
 from ui.layout import BangerWaveLayout
 
-def main(page: ft.Page):
+
+def main(page: Page):
     # 1. Initialize your core system layers inside runtime memory
     state = AppState()
     worker = AudioWorker()
@@ -14,14 +17,13 @@ def main(page: ft.Page):
     layout = BangerWaveLayout(page)
     layout.assemble()
 
-    # 3. Defensive Cleanup: Intercept window closing events to kill background threads safely
-    def handle_window_event(e):
-        if e.data == "close":
-            print("[SYSTEM TEARDOWN] Cleaning up background engine worker threads...")
-            worker.shutdown()
-            page.window_destroy()
+    # 3. Defensive cleanup: intercept the page close event and stop the worker safely
+    def handle_close(_event):
+        print("[SYSTEM TEARDOWN] Cleaning up background engine worker threads...")
+        worker.shutdown()
 
-    page.on_window_event = handle_window_event
+    page.on_close = handle_close
+
 
 if __name__ == "__main__":
-    ft.app(target=main)
+    app(target=main)

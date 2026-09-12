@@ -1,6 +1,6 @@
 import asyncio
 import concurrent.futures
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Iterable, Optional, cast
 import yt_dlp
 
 class AudioWorker:
@@ -24,15 +24,17 @@ class AudioWorker:
         """Synchronous core executed exclusively within the background worker thread."""
         search_target = f"ytsearch1:{query}"
         
-        with yt_dlp.YoutubeDL(self.ydl_opts) as ydl:
+        with yt_dlp.YoutubeDL(cast(Any, self.ydl_opts)) as ydl:
             info = ydl.extract_info(search_target, download=False)
             
             if info:
-                # Cast the Pylance-flagged iterable safely to a Sized Python list
-                entries = list(info.get("entries") or [])
+                entries = cast(
+                    Iterable[Dict[str, Any]],
+                    info.get("entries") or [],
+                )
                 
-                if entries:
-                    target_entry = entries[0]  # Safely index position zero
+                target_entry = next(iter(entries), None)
+                if target_entry is not None:
                     return {
                         "id": target_entry.get('id'),
                         "title": target_entry.get('title', 'Unknown Track'),
