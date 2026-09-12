@@ -1,6 +1,7 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:venv",
     "chat.tools.terminal.autoApprove": {
-        ".\\.venv\\Scripts\\python": true
+        ".\\.venv\\Scripts\\python": true,
+        "&": true
     }
 }

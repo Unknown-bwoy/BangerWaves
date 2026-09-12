@@ -2,7 +2,6 @@
   "recommendations": [
     "GitHub.copilot-chat",
     "ms-python.python",
-    "ms-python.vscode-pylance",
-    "github.copilot"
+    "ms-python.vscode-pylance"
   ]
 }
